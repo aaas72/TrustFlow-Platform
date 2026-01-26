@@ -136,7 +136,7 @@ All relationships are protected by **Foreign Key Constraints** ensuring referent
 
 ## **Conclusion**
 
-(V4) is a fully-engineered system combining:
+Guven aksi is a fully-engineered system combining:
 
 * **Financial Security & Trust Enforcement**
   *(via Escrow & audit-logged transactions)*
