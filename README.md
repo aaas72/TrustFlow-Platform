@@ -1,5 +1,5 @@
 
-# **Comprehensive Report: General and Technical Practices of the Freelance Platform (V4)**
+# **Comprehensive Report: General and Technical Practices of the Freelance Platform**
 
 This report provides an in-depth analysis of the platform, divided into two main sections: The first section covers the general practices and project lifecycle methodology to ensure the rights of all parties involved, while the second section dives into technical architecture, engineering decisions, and implementation details.
 
