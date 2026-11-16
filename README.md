@@ -1,149 +1,90 @@
+# TrustFlow
 
-# **Comprehensive Report: General and Technical Practices of the Freelance Platform**
+A freelance marketplace built on a zero-trust model: clients fund work into escrow, freelancers deliver milestone by milestone, and money is released only after each milestone is approved.
 
-This report provides an in-depth analysis of the platform, divided into two main sections: The first section covers the general practices and project lifecycle methodology to ensure the rights of all parties involved, while the second section dives into technical architecture, engineering decisions, and implementation details.
+![React](https://img.shields.io/badge/React_19-20232A?style=flat-square&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+![Express](https://img.shields.io/badge/Express_5-000000?style=flat-square&logo=express&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white)
+![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=flat-square&logo=socketdotio&logoColor=white)
+![Stripe](https://img.shields.io/badge/Stripe-635BFF?style=flat-square&logo=stripe&logoColor=white)
 
----
+## How It Works
 
-## **Part 1: General Practices and System Methodology**
+```text
+Client posts project ─▶ Freelancers bid ─▶ Client accepts a bid
+        │
+        ▼
+Milestone plan agreed ─▶ Client funds milestone (Stripe → escrow)
+        │
+        ▼
+Freelancer submits work ─▶ Client approves or requests revision
+        │
+        ▼
+Funds released to freelancer ─▶ Next milestone unlocks ─▶ Mutual reviews
+```
 
-This section focuses on the **business logic** and how the system manages the entire lifecycle of freelance projects securely and transparently.
+## Features
 
-### **1. Zero-Trust Philosophy & Escrow Financial Protection**
+- **Three roles** — client, freelancer and admin, each with its own dashboard and layout
+- **Bidding** — freelancers bid on open projects; accepting a bid locks the project for planning
+- **Milestone plans** — work is split into sequential milestones; each one starts only after the previous one is fully approved
+- **Escrow payments** — milestones are funded through Stripe payment intents and released on approval, with every movement recorded in a transactions ledger
+- **Revisions and attachments** — submissions carry files stored in the database, and clients can request changes
+- **Real-time notifications** — Socket.io pushes updates on bids, milestones and payments
+- **Reviews** — both sides rate each other when a project completes
+- **Security** — JWT authentication, bcrypt password hashing, role checks and centralized error handling
 
-The platform is designed based on the principle that **trust must be enforced technically, not assumed**.
+## Architecture
 
-* **Practice:** Mandatory use of an **Escrow System** as a secure financial intermediary.
-* **Implementation:**
+```text
+TrustFlow-Platform/
+├── client/                 # React 19 + Vite + Tailwind CSS
+│   └── src/
+│       ├── pages/          # client/ · freelancer/ · admin/ · shared/
+│       ├── services/       # API layer (axios)
+│       ├── context/ hooks/ components/ types/
+├── server/                 # Express 5 REST API + Socket.io
+│   ├── routes/             # auth, projects, bids, plans, milestones, payments, reviews, notifications, admin
+│   ├── models/             # User, Project, Bid, ProjectPlan, Milestone, Payment, Transaction, Review…
+│   ├── middleware/         # auth, errorHandler, logger (Winston)
+│   └── migrations/         # incremental SQL migrations (escrow, plans, constraints…)
+├── guven_akisi.sql         # base database schema
+└── docs/ARCHITECTURE.md    # full design and engineering report
+```
 
-  * A freelancer cannot start working until the client deposits the budget into escrow.
-  * Funds are only released to the freelancer upon client approval.
-* **Goal:**
+The full design rationale — zero-trust escrow, the milestone state machine, file storage strategy and the database model — is documented in **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
-  * Protect freelancers from unpaid work
-  * Protect clients from incomplete or low-quality delivery
-* **Ledger System:**
+## Getting Started
 
-  * All financial activities are logged in the `transactions` table, ensuring transparency and auditability.
+**Requirements:** Node.js 20+, MySQL 8, a Stripe test account
 
-### **2. Milestone-Based Project Lifecycle**
+### 1. Database
 
-Instead of handling projects as one large block, work is divided into sequential milestones.
+```bash
+mysql -u root -p -e "CREATE DATABASE trustflow"
+mysql -u root -p trustflow < guven_akisi.sql
+# then apply the files in server/migrations/ in date order
+```
 
-* **Planning Phase:**
-  After bid acceptance, the project is locked until a milestone plan is created.
-  This plan is stored in **JSON format** to allow flexible modification before activation.
-* **Sequential Execution:**
-  No milestone can begin unless the previous one is fully approved **both technically and financially**.
-* **Adaptability:**
-  The milestone plan can be revised as long as execution has not started.
-  A **sync mechanism** rebuilds pending milestones to ensure consistency.
+### 2. API server
 
-### **3. Centralized and Sovereign File Management**
+```bash
+cd server
+cp .env.example .env    # DB_*, JWT_SECRET, STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET
+npm install
+npm run dev             # http://localhost:3000
+```
 
-* **Approach:** All digital assets must remain under complete system control.
-* **Decision:** Moving from File System Storage to **Database Storage**.
+### 3. Web client
 
-  * Ensures backups include **all project data**
-  * Prevents unauthorized direct access through HTTP public links
+```bash
+cd client
+npm install
+npm run dev
+```
 
----
+## Author
 
-## **Part 2: Technical and Architectural Practices**
-
-This section covers **how** the system is engineered — the tools, design patterns, and code structure.
-
-### **1. System Architecture**
-
-The platform follows a **fully decoupled Client-Server architecture**, where the Frontend and Backend operate independently through a **RESTful API**.
-
-#### **A. Modified MVC Pattern in the Backend**
-
-Although the backend exposes only API responses, it follows an MVC-aligned structure:
-
-* **Model:**
-  Located in `models/` (e.g., `User.js`, `Project.js`) — handles SQL database operations.
-* **Controller:**
-  Implemented through `routes/` files — receives requests and executes business logic.
-* **View:**
-  JSON responses returned to the frontend.
-
-### **2. Service-Layer Architecture (Separation of Concerns)**
-
-A structured set of services ensures clean modularity and maintainability.
-
-#### **Frontend Services** (located in `client/src/services/`)
-
-| Service                  | Role                            |
-| ------------------------ | ------------------------------- |
-| `authService.ts`         | Authentication & token handling |
-| `projectService.ts`      | Create/update/list projects     |
-| `bidService.ts`          | Bidding operations              |
-| `milestoneService.ts`    | Stage delivery & approvals      |
-| `planService.ts`         | Project planning operations     |
-| `paymentService.ts`      | Wallet & balance operations     |
-| `notificationService.ts` | Notification retrieval          |
-| `socketService.ts`       | Real-time communication         |
-| `api.ts`                 | Base Axios configuration        |
-
-#### **Backend Middleware** (located in `server/middleware/`)
-
-1. **Auth Middleware (`requireAuth`)** – Validate and decode JWT tokens
-2. **Global Error Handler** – Unified error management
-3. **Request Logger** – Monitoring and observability
-4. **CORS Handler** – Cross-origin access support
-5. **Cache Control** – Removes stale API responses
-6. **Request ID Generator** – Improves log traceability
-
-### **3. Frontend Implementation**
-
-Built using:
-
-* **React.js** + **TypeScript** + **Vite**
-
-Features:
-
-* **State Management:** React Hooks & Context API
-* **Styling:** Tailwind CSS for fast and responsive UI
-
-### **4. Backend Implementation**
-
-Developed using:
-
-* **Node.js** + **Express**
-
-Key decisions:
-
-* **Database Operations:**
-  `mysql2` + Promises (`async/await`) with **Parameterized Queries** for SQL injection protection
-* **Real-Time Communication:**
-  **Socket.io** implementing **Observer Pattern**
-* **File Storage:**
-  `Multer` + `MemoryStorage` → Database (`LONGBLOB`)
-
-### **5. Database Schema (MySQL Relational Model)**
-
-Core tables include:
-
-* Users: `users`
-* Project data: `projects`, `bids`
-* Execution model: `project_plans`, `milestones`
-* Financial system: `payments`, `transactions`
-
-All relationships are protected by **Foreign Key Constraints** ensuring referential integrity.
-
----
-
-## **Conclusion**
-
-Guven aksi is a fully-engineered system combining:
-
-* **Financial Security & Trust Enforcement**
-  *(via Escrow & audit-logged transactions)*
-* **Administrative Efficiency & Flexibility**
-  *(via milestone planning & controlled execution)*
-* **Robust Technical Architecture**
-  *(MVC-driven backend, modular services, real-time communication, secure storage)*
-
-The platform demonstrates strong engineering principles that protect user rights while ensuring a scalable and reliable freelance marketplace experience.
-
+**Abdellah Sheikh** — [abdellahsheikh.dev](https://abdellahsheikh.dev) · [LinkedIn](https://www.linkedin.com/in/abdellahsheikh)
