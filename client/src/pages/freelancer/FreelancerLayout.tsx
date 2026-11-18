@@ -6,10 +6,7 @@ import {
   FiHome,
   FiFolder,
   FiArchive,
-  FiMessageSquare,
   FiDollarSign,
-  FiUser,
-  FiSettings,
   FiCheckCircle,
 } from "react-icons/fi";
 import {

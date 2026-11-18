@@ -6,9 +6,7 @@ import {
   FiHome,
   FiFolder,
   FiPlusCircle,
-  FiMessageSquare,
   FiDollarSign,
-  FiUser,
 } from "react-icons/fi";
 import {
   getNotifications,

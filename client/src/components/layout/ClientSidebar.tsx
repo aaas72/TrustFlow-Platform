@@ -5,8 +5,6 @@ import {
   FiPlusCircle,
   FiMessageSquare,
   FiDollarSign,
-  FiUser,
-  FiSettings,
 } from "react-icons/fi";
 
 interface SidebarProps {

@@ -135,15 +135,8 @@ const NotificationSystem: FC<NotificationSystemProps> = ({
   onDeleteNotification,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [filter, setFilter] = useState<"all" | "unread" | "action_required">(
-    "all"
-  );
-  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
-  const actionRequiredCount = notifications.filter(
-    (n) => n.actionRequired && !n.isRead
-  ).length;
 
   const getNotificationIcon = (type: Notification["type"]) => {
     switch (type) {
@@ -165,31 +158,12 @@ const NotificationSystem: FC<NotificationSystemProps> = ({
   };
 
   const getNotificationColor = (
-    type: Notification["type"],
+    _type: Notification["type"],
     isRead: boolean
   ) => {
     // Okunmamışsa hafif mavi, okunmuşsa beyaz
     if (!isRead) return "bg-blue-50";
     return "bg-white";
-  };
-
-  const getTypeText = (type: Notification["type"]) => {
-    switch (type) {
-      case "milestone_funded":
-        return "Aşama Finanse Edildi";
-      case "milestone_submitted":
-        return "Aşama Teslim Edildi";
-      case "milestone_approved":
-        return "Aşama Onaylandı";
-      case "revision_requested":
-        return "Revizyon İstendi";
-      case "payment_released":
-        return "Ödeme Serbest Bırakıldı";
-      case "plan_submitted":
-        return "Plan Sunuldu";
-      default:
-        return "Bildirim";
-    }
   };
 
   const formatTimeAgo = (timestamp: Date) => {

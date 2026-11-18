@@ -62,11 +62,6 @@ export default function MilestoneSystem({
   >(null);
   const [revisionNote, setRevisionNote] = React.useState("");
 
-  const API_BASE =
-    (typeof import.meta !== "undefined" &&
-      (import.meta as any).env?.VITE_API_BASE_URL) ||
-    "http://localhost:3000/api";
-  const SERVER_ORIGIN = API_BASE.replace(/\/api\/?$/, "");
 
   const getStatusColor = (status: Milestone["status"]) => {
     switch (status) {
