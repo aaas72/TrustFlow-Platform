@@ -4,12 +4,12 @@ const User = require('../models/User');
 const db = require('../config/database');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { getJwtSecret } = require('../utils/jwtSecret');
 
 function signToken(user) {
   const payload = { id: user.id, email: user.email, user_type: user.user_type };
-  const secret = process.env.JWT_SECRET || 'dev_secret';
   const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
-  return jwt.sign(payload, secret, { expiresIn });
+  return jwt.sign(payload, getJwtSecret(), { expiresIn });
 }
 
 // Yeni kullanıcı kaydı
@@ -19,7 +19,8 @@ router.post('/register', (req, res) => {
   const normalized_email = (email || '').trim().toLowerCase();
   const normalized_name = (full_name || '').trim();
   const normalized_user_type = (user_type || '').trim();
-  const allowedTypes = ['client', 'freelancer', 'admin'];
+  // Admin accounts are provisioned directly in the database, never through public sign-up.
+  const allowedTypes = ['client', 'freelancer'];
 
   if (!normalized_name || !normalized_email || !password || !normalized_user_type) {
     return res.status(400).json({ success: false, message: 'Tüm alanlar gereklidir' });
@@ -31,7 +32,7 @@ router.post('/register', (req, res) => {
   }
 
   if (!allowedTypes.includes(normalized_user_type)) {
-    return res.status(400).json({ success: false, message: 'Kullanıcı türü client, freelancer veya admin olmalıdır' });
+    return res.status(400).json({ success: false, message: 'Kullanıcı türü client veya freelancer olmalıdır' });
   }
 
   db.query('SELECT id FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) LIMIT 1', [normalized_email], (checkErr, rows) => {

@@ -1,4 +1,5 @@
 const express = require("express");
+const { getJwtSecret } = require("../utils/jwtSecret");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
 const Milestone = require("../models/Milestone");
@@ -1200,8 +1201,7 @@ const attachmentAuth = (req, res, next) => {
   if (!token) return res.status(401).send("Yetkilendirme gerekli");
 
   try {
-    const secret = process.env.JWT_SECRET || "dev_secret";
-    req.user = jwt.verify(token, secret);
+    req.user = jwt.verify(token, getJwtSecret());
     next();
   } catch (e) {
     return res.status(401).send("Geçersiz token");
