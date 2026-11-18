@@ -2,6 +2,7 @@
 
 A freelance marketplace built on a zero-trust model: clients fund work into escrow, freelancers deliver milestone by milestone, and money is released only after each milestone is approved.
 
+[![CI](https://github.com/aaas72/TrustFlow-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/aaas72/TrustFlow-Platform/actions/workflows/ci.yml)
 ![React](https://img.shields.io/badge/React_19-20232A?style=flat-square&logo=react&logoColor=61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
@@ -84,6 +85,14 @@ cd client
 npm install
 npm run dev
 ```
+
+## Testing
+
+```bash
+cd server && npm test     # Node test runner + Supertest: auth, authorization middleware, error handling
+```
+
+The API tests stub the MySQL pool, so no database is needed. Every push and pull request runs the server tests and a full client build in [GitHub Actions](.github/workflows/ci.yml).
 
 ## Author
 
